@@ -34,19 +34,17 @@ class MyappPlugin : public flutter::Plugin {
 // static
 void MyappPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows *registrar) {
-  auto channel =
-      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "myapp",
-          &flutter::StandardMethodCodec::GetInstance());
+      auto channel = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(registrar->messenger(), "myapp", &flutter::StandardMethodCodec::GetInstance());
+      
+      auto plugin = std::make_unique<MyappPlugin>();
 
-  auto plugin = std::make_unique<MyappPlugin>();
+      channel->SetMethodCallHandler(
+        [plugin_pointer = plugin.get()](const auto &call, auto result) {
+          plugin_pointer->HandleMethodCall(call, std::move(result));
+        }
+      );
 
-  channel->SetMethodCallHandler(
-      [plugin_pointer = plugin.get()](const auto &call, auto result) {
-        plugin_pointer->HandleMethodCall(call, std::move(result));
-      });
-
-  registrar->AddPlugin(std::move(plugin));
+      registrar->AddPlugin(std::move(plugin));
 }
 
 MyappPlugin::MyappPlugin() {}
