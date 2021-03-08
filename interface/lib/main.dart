@@ -14,11 +14,15 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  App _app;
+
   String _platformVersion = 'Unknown';
+  String _callbackValue = '';
 
   @override
   void initState() {
     super.initState();
+
     initPlatformState();
   }
 
@@ -27,7 +31,7 @@ class _MyAppState extends State<MyApp> {
     String platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      platformVersion = await Myapp.platformVersion;
+      platformVersion = await App.platformVersion;
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -36,6 +40,16 @@ class _MyAppState extends State<MyApp> {
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
     if (!mounted) return;
+
+    _app = new App();
+    _app.callback = (result) {
+      print(result);
+
+      setState(() {
+        _callbackValue = result.toString();
+      });
+    };
+    _app.startTimer();
 
     setState(() {
       _platformVersion = platformVersion;
@@ -49,9 +63,14 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: Text('Running application on: $_platformVersion\n'),
-        ),
+        body: Column(children: [
+          Center(
+            child: Text('Running application on: $_platformVersion\n'),
+          ),
+          Center(
+            child: Text('Callback value: $_callbackValue'),
+          )
+        ]),
       ),
     );
   }
