@@ -13,6 +13,7 @@
 #include <map>
 #include <memory>
 #include <sstream>
+#include <stdint.h>
 
 namespace
 {
@@ -29,6 +30,11 @@ namespace
     // Called when a method is called on this plugin's channel from Dart.
     void HandleMethodCall(const flutter::MethodCall<flutter::EncodableValue> &method_call, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   };
+
+  static constexpr unsigned int hash(const char *str, int h = 0)
+  {
+    return !str[h] ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
+  }
 
   // static
   void MyappPlugin::RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar)
@@ -51,9 +57,12 @@ namespace
 
   void MyappPlugin::HandleMethodCall(const flutter::MethodCall<flutter::EncodableValue> &method_call, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result)
   {
-    if (method_call.method_name().compare("getPlatformVersion") == 0)
+    auto method_name = hash(method_call.method_name().c_str());
+    std::ostringstream version_stream;
+
+    switch (method_name)
     {
-      std::ostringstream version_stream;
+    case hash("getPlatformVersion"):
       version_stream << "Windows ";
       if (IsWindows10OrGreater())
       {
@@ -68,10 +77,10 @@ namespace
         version_stream << "7";
       }
       result->Success(flutter::EncodableValue(version_stream.str()));
-    }
-    else
-    {
+      break;
+    default:
       result->NotImplemented();
+      break;
     }
   }
 } // namespace
@@ -79,4 +88,32 @@ namespace
 void MyappPluginRegisterWithRegistrar(FlutterDesktopPluginRegistrarRef registrar)
 {
   MyappPlugin::RegisterWithRegistrar(flutter::PluginRegistrarManager::GetInstance()->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
+}
+
+extern "C"
+{
+#ifdef _WIN32
+  __declspec(dllexport)
+#endif
+  int32_t native_add(int32_t x, int32_t y)
+  {
+    return x + y;
+  }
+
+  struct MyStruct
+  {
+    int var_a = 12;
+  };
+
+#ifdef _WIN32
+  __declspec(dllexport)
+#endif
+  struct MyStruct create_MyStruct()
+  {
+    struct MyStruct my_struct;
+
+    my_struct.var_a = 345;
+
+    return my_struct;
+  }
 }

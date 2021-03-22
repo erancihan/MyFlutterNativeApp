@@ -46,7 +46,7 @@ class _MyAppState extends State<MyApp> {
       print(result);
 
       setState(() {
-        _callbackValue = result.toString();
+        _callbackValue = _app.sum(result, 1).toString();
       });
     };
     _app.startTimer();
