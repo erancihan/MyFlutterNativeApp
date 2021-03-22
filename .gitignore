@@ -9,3 +9,6 @@ cmake-build-*/
 
 .idea/
 .vscode/
+
+# ignore generated files
+.flutter-plugins*
