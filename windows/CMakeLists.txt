@@ -6,7 +6,9 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 # not be changed
 set(PLUGIN_NAME "myapp_plugin")
 
-add_library(${PLUGIN_NAME} SHARED "myapp_plugin.cpp")
+file(GLOB SOURCE_FILES "./*.cpp" "./*.h")
+
+add_library(${PLUGIN_NAME} SHARED ${SOURCE_FILES})
 
 apply_standard_settings(${PLUGIN_NAME})
 
