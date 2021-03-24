@@ -1,7 +1,21 @@
 import 'dart:ffi';
 import 'dart:io';
 
-class MyStruct extends Struct {
+typedef callback_type = Int32 Function(Pointer<Void>, Int32);
+typedef create_MyStruct_type = MyStruct Function(
+    Pointer<NativeFunction<callback_type>>);
+typedef set_callback_type = Void Function(
+    Pointer<NativeFunction<callback_type>>);
+typedef invoke_callback_type = Void Function();
+
+typedef CreateMyStructType = MyStruct Function(
+    Pointer<NativeFunction<callback_type>>);
+typedef SetCallbackType = void Function(Pointer<NativeFunction<callback_type>>);
+typedef InvokeCallbackType = void Function();
+
+const int except = -1;
+
+abstract class MyStruct extends Struct {
   @Int32()
   int var_a;
 }
@@ -9,7 +23,15 @@ class MyStruct extends Struct {
 class MyStructWrapper {
   MyStruct myStruct;
 
-  MyStruct Function() createMyStruct;
+  CreateMyStructType createMyStruct;
+  SetCallbackType setCallback;
+  InvokeCallbackType invokeCallback;
+
+  static int callback(Pointer<Void> ptr, int i) {
+    print("> $i");
+
+    return i;
+  }
 
   MyStructWrapper() {
     DynamicLibrary library =
@@ -18,10 +40,21 @@ class MyStructWrapper {
     if (library == null) return;
 
     createMyStruct = library
-        .lookup<NativeFunction<MyStruct Function()>>("create_MyStruct")
+        .lookup<NativeFunction<create_MyStruct_type>>("create_MyStruct")
         .asFunction();
 
-    MyStruct myStruct = createMyStruct();
-    print(myStruct.var_a);
+    setCallback = library
+        .lookup<NativeFunction<set_callback_type>>("set_callback")
+        .asFunction();
+
+    invokeCallback = library
+        .lookup<NativeFunction<invoke_callback_type>>("invoke_callback")
+        .asFunction();
+
+    // MyStruct myStruct = createMyStruct(Pointer.fromFunction<callback_type>(callback, except));
+    // print(myStruct.var_a);
+
+    setCallback(Pointer.fromFunction<callback_type>(callback, except));
+    invokeCallback();
   }
 }

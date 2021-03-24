@@ -100,6 +100,13 @@ extern "C"
     return x + y;
   }
 
+  struct Store
+  {
+    int32_t (*callback)(void*, int32_t) = nullptr;
+  };
+
+  Store store = Store{};
+
   struct MyStruct
   {
     int var_a = 12;
@@ -108,11 +115,31 @@ extern "C"
 #ifdef _WIN32
   __declspec(dllexport)
 #endif
-  struct MyStruct create_MyStruct()
+  void set_callback(int32_t (*callback)(void*, int32_t))
+  {
+    store.callback = callback;
+  }
+
+#ifdef _WIN32
+  __declspec(dllexport)
+#endif
+  void invoke_callback()
+  {
+    store.callback(nullptr, 102);
+  }
+
+#ifdef _WIN32
+  __declspec(dllexport)
+#endif
+  struct MyStruct create_MyStruct(int32_t (*callback)(void*, int32_t))
   {
     struct MyStruct my_struct;
 
-    my_struct.var_a = 345;
+    callback(nullptr, my_struct.var_a);
+    my_struct.var_a = 100;
+
+    // my_struct.callback = callback;
+    // callback(nullptr, my_struct.var_a);
 
     return my_struct;
   }
