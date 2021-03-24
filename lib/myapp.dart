@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:myapp/mystruct.dart';
+import 'package:myapp/practice_callback_store.dart';
 
 class App {
   static const MethodChannel _channel = const MethodChannel('myapp');
@@ -16,7 +17,8 @@ class App {
   int Function(int x, int y) _nativeAdd;
 
   App() {
-    MyStructWrapper();
+    PracticeMyNativeStruct();
+    PracticeCallbackStore();
 
     initNative();
   }
